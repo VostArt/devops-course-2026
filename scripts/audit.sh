@@ -37,6 +37,7 @@ awk -F: '$3>=1000 && $3<65534 {printf "    %s (uid=%s)\n",$1,$3}' /etc/passwd
 
 echo "[4] Веб-сервер Nginx"
 check "Служба Nginx активна" "active" "$(systemctl is-active nginx 2>/dev/null || echo inactive)"
+
 NGINX_TEST="$(sudo nginx -t >/dev/null 2>&1 && echo ok || echo fail)"
 check "Конфигурация Nginx корректна" "ok" "$NGINX_TEST"
 
