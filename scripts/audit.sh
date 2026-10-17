@@ -56,5 +56,17 @@ else
     check "Права на файлы сайта и TLS-ключ безопасны" "safe" "unsafe"
 fi
 
+echo "[5] Контейнеризация"
+check "Служба Docker активна" "active" "$(systemctl is-active docker 2>/dev/null || echo inactive)"
+
+DB_HEALTH="$(docker inspect -f '{{.State.Health.Status}}' app-db-1 2>/dev/null || echo unhealthy)"
+check "Контейнер СУБД в состоянии healthy" "healthy" "$DB_HEALTH"
+
+PUBLIC_PORTS="$(sudo ss -tln | grep -E ':(5000|5432)\b' | grep -v '127.0.0.1:5000' | wc -l | tr -d ' ')"
+check "Порты 5000 и 5432 изолированы (только 127.0.0.1)" "0" "$PUBLIC_PORTS"
+
+ENV_PERMS="$(stat -c '%a' /home/devops/app/.env 2>/dev/null || echo 000)"
+check "Права файла .env равны 600" "600" "$ENV_PERMS"
+
 echo "Пройдено: $PASS, не пройдено: $FAIL"
 [[ $FAIL -eq 0 ]] && exit 0 || exit 1
